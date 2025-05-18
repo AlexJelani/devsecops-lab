@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux swap
+*~
+
+# IDEs / Editors
+.vscode/
+.idea/
+*.iml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Terraform variables containing secrets
+terraform.tfvars
+
+# Sensitive key files
+*.pem
+*.key
+
+# Environment files
+.env
+
+# Docker Compose overrides (if you create local overrides)
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Logs
+*.log
+logs/
+
+# Cloud-Init output
+cloud-init-output.log
+
+# Node modules (if you ever add JS/TS tooling)
+node_modules/

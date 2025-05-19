@@ -23,7 +23,17 @@ variable "region" {
   type        = string
 }
 
+variable "root_compartment_id" {
+  description = "OCID of the parent compartment in which devsecops-lab lives"
+  type        = string
+}
+
+variable "vcn_id" {
+  description = "OCI VCN OCID"
+  type        = string
+}
 variable "compartment_id" {
-  description = "The OCID of the compartment where resources will be created"
+
+  description = "OCID of the compartment in which devsecops-lab lives"
   type        = string
 }

@@ -40,3 +40,8 @@ data "oci_core_images" "ubuntu_image" {
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
+
+data "oci_identity_compartments" "lab" {
+  compartment_id = var.root_compartment_id
+  name   = "devsecops-lab"
+  }

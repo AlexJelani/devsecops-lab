@@ -1,19 +1,19 @@
 resource "oci_core_virtual_network" "vcn" {
-  compartment_id = var.compartment_id
+  compartment_id = oci_identity_compartment.devsecops_lab.id
   cidr_block     = "10.0.0.0/16"
   display_name   = "devsecops-vcn"
   dns_label      = "devsecops" # ✱ enable DNS on the VCN ✱
 }
 
 resource "oci_core_internet_gateway" "igw" {
-  compartment_id = var.compartment_id
+  compartment_id = oci_identity_compartment.devsecops_lab.id
   vcn_id         = oci_core_virtual_network.vcn.id
   display_name   = "devsecops-igw"
   enabled        = true
 }
 
 resource "oci_core_route_table" "route_table" {
-  compartment_id = var.compartment_id
+  compartment_id = oci_identity_compartment.devsecops_lab.id
   vcn_id         = oci_core_virtual_network.vcn.id
   display_name   = "devsecops-route"
 
@@ -24,7 +24,7 @@ resource "oci_core_route_table" "route_table" {
 }
 
 resource "oci_core_security_list" "ssh" {
-  compartment_id = var.compartment_id
+  compartment_id = oci_identity_compartment.devsecops_lab.id
   vcn_id         = oci_core_virtual_network.vcn.id
   display_name   = "devsecops-ssh-sl"
 
@@ -44,7 +44,7 @@ resource "oci_core_security_list" "ssh" {
 }
 
 resource "oci_core_subnet" "subnet" {
-  compartment_id             = var.compartment_id
+  compartment_id             = oci_identity_compartment.devsecops_lab.id
   vcn_id                     = oci_core_virtual_network.vcn.id
   cidr_block                 = "10.0.1.0/24"
   display_name               = "devsecops-subnet"

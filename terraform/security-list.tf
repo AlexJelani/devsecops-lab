@@ -1,13 +1,3 @@
-variable "compartment_id" {
-  description = "OCI compartment OCID"
-  type        = string
-}
-
-variable "vcn_id" {
-  description = "OCI VCN OCID"
-  type        = string
-}
-
 resource "oci_core_security_list" "lab_public" {
   compartment_id = var.compartment_id
   display_name   = "lab-public-sg"

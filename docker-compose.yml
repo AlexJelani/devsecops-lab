@@ -47,7 +47,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus:/etc/prometheus
+      - ./prometheus:/etc/prometheus    # ← this folder is empty
     networks:
       - backend
 

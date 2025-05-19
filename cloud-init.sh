@@ -1,4 +1,6 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
 # 1. Update & install prerequisites
 apt-get update
@@ -9,34 +11,36 @@ apt-get install -y \
   gnupg \
   lsb-release
 
-# 2. Add Docker’s official GPG key & repo
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-  gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-  https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" \
-  > /etc/apt/sources.list.d/docker.list
+# 2. Add Docker’s official GPG key & repo if missing
+KEYRING=/usr/share/keyrings/docker-archive-keyring.gpg
+if [ ! -f "$KEYRING" ]; then
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | gpg --batch --yes --dearmor -o "$KEYRING"
+fi
 
-# 3. Install Docker Engine
+DOCKER_LIST=/etc/apt/sources.list.d/docker.list
+if ! grep -q download.docker.com "$DOCKER_LIST" 2>/dev/null; then
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=$KEYRING] \
+    https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable" \
+    > "$DOCKER_LIST"
+fi
+
+# 3. Install Docker Engine & Compose plugin
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 
-# 4. Install standalone Docker Compose
-DOCKER_COMPOSE_VERSION=2.12.2
-curl -L "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-  -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-
-# 5. Enable & start Docker
+# 4. Enable & start Docker
 systemctl enable docker
 systemctl start docker
 
-# 6. Prepare project directory & write docker-compose.yml
+# 5. Prepare project directory
 PROJECT_DIR=/home/ubuntu/devsecops-lab
-mkdir -p ${PROJECT_DIR}
-cat <<'EOF' > ${PROJECT_DIR}/docker-compose.yml
-version: '3.8'
+mkdir -p "$PROJECT_DIR"
+
+# 6. Write docker-compose.yml
+cat > "$PROJECT_DIR/docker-compose.yml" << 'EOF'
 services:
   nginx:
     image: nginx:latest
@@ -104,7 +108,23 @@ networks:
   backend:
 EOF
 
-# 7. Fix ownership & launch
-chown -R ubuntu:ubuntu ${PROJECT_DIR}
-cd ${PROJECT_DIR}
+# 7. Drop in a minimal Prometheus config
+mkdir -p "$PROJECT_DIR/prometheus"
+cat > "$PROJECT_DIR/prometheus/prometheus.yml" << 'EOF'
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+EOF
+
+# 8. Fix ownership & launch everything
+chown -R ubuntu:ubuntu "$PROJECT_DIR"
+cd "$PROJECT_DIR"
+docker-compose pull
 docker-compose up -d
+
+echo "✅ All containers are up:"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
